@@ -1,14 +1,28 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  Menu, X, ChevronRight, Bot, Zap, Users, Mail, Phone, 
-  MapPin, ArrowRight, Star, CheckCircle, Code, Database,
-  Cloud, Cpu, Github, Linkedin, Twitter, ExternalLink, Workflow,
-  Play, Award, TrendingUp, Clock
+  Menu, X, Bot, Zap, Users, Mail, Phone, 
+  ArrowRight, Star, CheckCircle, Code, Database,
+  Cpu, Linkedin, Workflow,
+  Send, Calendar, Download, Facebook, Instagram
 } from 'lucide-react';
+import emailjs from '@emailjs/browser';
 
 function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('home');
+  
+  // Form state
+  const [formData, setFormData] = useState({
+    fullName: '',
+    email: '',
+    company: '',
+    service: '',
+    budget: '',
+    message: ''
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
     const handleScroll = () => {
@@ -29,6 +43,71 @@ function App() {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  // Initialize EmailJS
+  useEffect(() => {
+    emailjs.init('ik0BXVjxVy04Q9xlN'); // Your EmailJS public key
+  }, []);
+
+  // Handle form input changes
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  // Handle form submission
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setSubmitStatus('idle');
+    setErrorMessage('');
+
+    // Basic validation
+    if (!formData.fullName || !formData.email || !formData.company || !formData.service || !formData.budget || !formData.message) {
+      setErrorMessage('Please fill in all required fields.');
+      setIsSubmitting(false);
+      setSubmitStatus('error');
+      return;
+    }
+
+    try {
+      // EmailJS service configuration
+      const serviceId = 'service_81d7f38'; // Your EmailJS service ID
+      const templateId = 'template_k3bahiq'; // Your EmailJS template ID
+      
+      const templateParams = {
+        to_email: 'samssolutionshub@gmail.com',
+        from_name: formData.fullName,
+        from_email: formData.email,
+        company: formData.company,
+        service: formData.service,
+        budget: formData.budget,
+        message: formData.message,
+        reply_to: formData.email
+      };
+
+      await emailjs.send(serviceId, templateId, templateParams);
+      
+      setSubmitStatus('success');
+      setFormData({
+        fullName: '',
+        email: '',
+        company: '',
+        service: '',
+        budget: '',
+        message: ''
+      });
+    } catch (error) {
+      console.error('EmailJS Error:', error);
+      setErrorMessage('Failed to send message. Please try again or contact us directly.');
+      setSubmitStatus('error');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const scrollToSection = (sectionId: string) => {
     const element = document.getElementById(sectionId);
@@ -84,52 +163,28 @@ function App() {
 
   const portfolioProjects = [
     {
-      title: "E-commerce Order Processing Automation",
-      image: "https://images.pexels.com/photos/159888/pexels-photo-159888.jpeg?auto=compress&cs=tinysrgb&w=800",
-      problem: "Manual order processing and inventory updates taking 40+ hours weekly",
-      solution: "n8n workflow connecting Shopify, inventory system, and fulfillment center with automated notifications",
-      results: [
-        { metric: "95%", label: "Time Reduction" },
-        { metric: "$50K", label: "Annual Savings" },
-        { metric: "99.8%", label: "Accuracy Rate" }
-      ],
-      technologies: ["n8n", "Shopify API", "Google Sheets", "Slack"]
-    },
-    {
-      title: "Lead Management Automation",
-      image: "https://images.pexels.com/photos/8867483/pexels-photo-8867483.jpeg?auto=compress&cs=tinysrgb&w=800",
-      problem: "Leads from multiple sources not being properly tracked and followed up",
-      solution: "Make.com scenario integrating all lead sources with CRM and automated nurture sequences",
-      results: [
-        { metric: "300%", label: "Lead Response Speed" },
-        { metric: "85%", label: "Follow-up Rate" },
-        { metric: "45%", label: "Conversion Increase" }
-      ],
-      technologies: ["Make.com", "HubSpot", "Facebook Ads", "Email Marketing"]
-    },
-    {
-      title: "Social Media Content Automation",
+      title: "n8n Invoice Processing Workflow",
       image: "https://images.pexels.com/photos/590016/pexels-photo-590016.jpeg?auto=compress&cs=tinysrgb&w=800",
-      problem: "Time-consuming social media posting and content distribution across platforms",
-      solution: "n8n workflow for automated content creation, scheduling, and cross-platform posting",
+      problem: "Manual invoice processing taking hours and prone to human errors",
+      solution: "n8n workflow for automated invoice extraction, validation, and approval routing",
       results: [
-        { metric: "20hrs", label: "Weekly Time Saved" },
-        { metric: "200%", label: "Content Output" },
-        { metric: "60%", label: "Engagement Increase" }
+        { metric: "85%", label: "Time Reduction" },
+        { metric: "99%", label: "Accuracy Rate" },
+        { metric: "24hrs", label: "Faster Processing" }
       ],
-      technologies: ["n8n", "OpenAI", "Buffer", "Canva API"]
+      technologies: ["n8n", "OCR API", "QuickBooks", "Slack", "Email"]
     },
     {
-      title: "Financial Reporting Automation",
+      title: "Customer Support Workflow by using n8n",
       image: "https://images.pexels.com/photos/1267338/pexels-photo-1267338.jpeg?auto=compress&cs=tinysrgb&w=800",
-      problem: "Manual financial data collection and report generation taking days",
-      solution: "Make.com automation pulling data from multiple sources and generating automated reports",
+      problem: "High volume of support tickets causing delays and inconsistent responses",
+      solution: "n8n workflow for automated ticket routing, categorization, and response generation",
       results: [
-        { metric: "90%", label: "Time Reduction" },
-        { metric: "Real-time", label: "Data Updates" },
-        { metric: "Zero", label: "Manual Errors" }
+        { metric: "70%", label: "Faster Response" },
+        { metric: "95%", label: "Customer Satisfaction" },
+        { metric: "50%", label: "Workload Reduction" }
       ],
-      technologies: ["Make.com", "QuickBooks", "Google Sheets", "Slack"]
+      technologies: ["n8n", "Zendesk", "OpenAI", "Slack", "CRM"]
     }
   ];
 
@@ -149,14 +204,6 @@ function App() {
       content: "Their Make.com automations handle our lead processing flawlessly. Our response time has improved by 300% and we never miss a lead anymore.",
       rating: 5,
       image: "https://images.pexels.com/photos/2379005/pexels-photo-2379005.jpeg?auto=compress&cs=tinysrgb&w=300"
-    },
-    {
-      name: "Emily Watson",
-      company: "RetailPro",
-      role: "Finance Manager",
-      content: "Order processing used to be our biggest bottleneck. Now it's completely automated with n8n and we can focus on growing the business.",
-      rating: 5,
-      image: "https://images.pexels.com/photos/3756681/pexels-photo-3756681.jpeg?auto=compress&cs=tinysrgb&w=300"
     }
   ];
 
@@ -177,25 +224,18 @@ function App() {
 
   const teamMembers = [
     {
-      name: "Alex Thompson",
-      role: "CEO & Lead Automation Engineer",
-      bio: "10+ years in automation with deep expertise in n8n, Make.com, and workflow optimization for businesses.",
-      image: "https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg?auto=compress&cs=tinysrgb&w=400",
-      linkedin: "#"
+      name: "Abhinesh Singh",
+      role: "Lead Automation Engineer",
+      bio: "n8n automation expert with the passion to build powerful automation workflows using n8n",
+      image: "/team/Abhi_profile.jpeg",
+      linkedin: "https://www.linkedin.com/in/abhinesh-singh-83427035a"
     },
     {
-      name: "Maria Garcia",
-      role: "Senior Automation Specialist",
-      bio: "Expert in designing complex automation workflows and integrations using visual automation platforms.",
-      image: "https://images.pexels.com/photos/3756679/pexels-photo-3756679.jpeg?auto=compress&cs=tinysrgb&w=400",
-      linkedin: "#"
-    },
-    {
-      name: "David Kim",
-      role: "Head of Client Success",
-      bio: "Business process expert focused on translating client requirements into effective automation workflows.",
-      image: "https://images.pexels.com/photos/3785079/pexels-photo-3785079.jpeg?auto=compress&cs=tinysrgb&w=400",
-      linkedin: "#"
+      name: "Prince Singh",
+      role: "Automation Consultant",
+      bio: "Specialist in discussing client needs, identifying automation opportunities, and translating them into efficient workflow solutions.",
+      image: "/team/prince_profile.jpg",
+      linkedin: "http://www.linkedin.com/in/prince-kumar-singh-9352a8374"
     }
   ];
 
@@ -207,8 +247,12 @@ function App() {
           <div className="flex justify-between items-center h-16">
             <div className="flex-shrink-0">
               <div className="flex items-center">
-                <Bot className="h-8 w-8 text-blue-400" />
-                <span className="ml-2 text-xl font-bold text-white">AutoFlow AI</span>
+                <img 
+                  src="/team/logo-removebg-preview.png" 
+                  alt="SAMS Solutions Hub Logo" 
+                  className="h-8 w-8 object-contain"
+                />
+                <span className="ml-2 text-xl font-bold text-white">SAMS Solutions Hub</span>
               </div>
             </div>
             
@@ -300,7 +344,7 @@ function App() {
       <section id="about" className="py-20 bg-gray-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">About AutoFlow AI</h2>
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">About SAMS Solutions Hub</h2>
             <p className="text-xl text-gray-300 max-w-3xl mx-auto">
               We're passionate about empowering businesses through intelligent automation and AI solutions.
             </p>
@@ -427,7 +471,7 @@ function App() {
             </p>
           </div>
           
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-2 gap-8">
             {testimonials.map((testimonial, index) => (
               <div key={index} className="bg-gray-800 p-8 rounded-xl shadow-md border border-gray-700">
                 <div className="flex mb-4">
@@ -484,7 +528,7 @@ function App() {
             </p>
           </div>
           
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-2 gap-8">
             {teamMembers.map((member, index) => (
               <div key={index} className="bg-gray-800 p-8 rounded-xl shadow-md text-center border border-gray-700">
                 <img 
@@ -509,117 +553,199 @@ function App() {
       </section>
 
       {/* Contact Section */}
-      <section id="contact" className="py-20 bg-blue-600">
+      <section id="contact" className="py-20 bg-gray-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Ready to Automate Your Business?</h2>
-            <p className="text-xl text-blue-100 max-w-3xl mx-auto">
-              Let's discuss how n8n and Make.com can streamline your operations and accelerate your growth.
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-3">Get In Touch</h2>
+            <p className="text-lg text-gray-300 max-w-3xl mx-auto">
+              Ready to transform your business with intelligent automation? Let's discuss your
+              challenges and explore how we can help you achieve your goals.
             </p>
           </div>
           
-          <div className="grid lg:grid-cols-2 gap-12">
-            {/* Contact Form */}
-            <div className="bg-white p-8 rounded-xl">
-              <h3 className="text-2xl font-bold text-gray-900 mb-6">Get In Touch</h3>
-              <form className="space-y-6">
+          <div className="bg-gray-800 rounded-2xl shadow-sm border border-gray-700 p-6 md:p-10">
+            <div className="grid lg:grid-cols-2 gap-10 relative">
+              {/* Vertical divider line */}
+              <div className="hidden lg:block absolute left-1/2 top-0 bottom-0 w-px bg-gray-600 transform -translate-x-1/2"></div>
+              {/* Left: Contact Information */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Name</label>
-                  <input 
-                    type="text" 
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
-                    placeholder="Your full name"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
-                  <input 
-                    type="email" 
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
-                    placeholder="your.email@company.com"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Company</label>
-                  <input 
-                    type="text" 
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
-                    placeholder="Your company name"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Message</label>
-                  <textarea 
-                    rows={4}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
-                    placeholder="Tell us about your automation needs..."
-                  ></textarea>
-                </div>
-                <button 
-                  type="submit"
-                  className="w-full bg-blue-500 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-600 transition-colors"
-                >
-                  Send Message
-                </button>
-              </form>
-            </div>
-            
-            {/* Contact Information */}
-            <div>
-              <div className="space-y-8">
+                <h3 className="text-xl font-semibold text-white mb-4">Let's Start a Conversation</h3>
+                <p className="text-gray-300 mb-8">
+                  Whether you're looking to automate a specific process or transform your entire operation,
+                  we're here to help. Reach out to discuss your project.
+                </p>
+
+                <div className="space-y-6">
                 <div className="flex items-start">
                   <div className="flex-shrink-0">
-                    <div className="flex items-center justify-center h-12 w-12 rounded-full bg-white text-blue-600">
+                      <div className="flex items-center justify-center h-12 w-12 rounded-xl bg-gray-700 text-blue-400">
                       <Mail className="h-6 w-6" />
                     </div>
                   </div>
                   <div className="ml-4">
-                    <h4 className="text-lg font-semibold text-white">Email Us</h4>
-                    <p className="text-blue-100">hello@autoflowai.com</p>
-                    <p className="text-blue-100">support@autoflowai.com</p>
-                  </div>
+                      <div className="text-sm font-medium text-white">Email Us</div>
+                      <div className="text-gray-200">samssolutionshub@gmail.com</div>
+                      <div className="text-gray-400 text-sm">Send us an email anytime</div>
+                    </div>
                 </div>
                 
                 <div className="flex items-start">
                   <div className="flex-shrink-0">
-                    <div className="flex items-center justify-center h-12 w-12 rounded-full bg-white text-blue-600">
+                      <div className="flex items-center justify-center h-12 w-12 rounded-xl bg-gray-700 text-blue-400">
                       <Phone className="h-6 w-6" />
                     </div>
                   </div>
                   <div className="ml-4">
-                    <h4 className="text-lg font-semibold text-white">Call Us</h4>
-                    <p className="text-blue-100">+1 (555) 123-4567</p>
-                    <p className="text-blue-100">Mon-Fri 9AM-6PM PST</p>
-                  </div>
+                      <div className="text-sm font-medium text-white">Call Us</div>
+                      <div className="text-gray-200">+91 8144153237</div>
+                      <div className="text-gray-400 text-sm">Anytime</div>
+                    </div>
                 </div>
                 
-                <div className="flex items-start">
-                  <div className="flex-shrink-0">
-                    <div className="flex items-center justify-center h-12 w-12 rounded-full bg-white text-blue-600">
-                      <MapPin className="h-6 w-6" />
-                    </div>
-                  </div>
-                  <div className="ml-4">
-                    <h4 className="text-lg font-semibold text-white">Visit Us</h4>
-                    <p className="text-blue-100">123 Innovation Drive</p>
-                    <p className="text-blue-100">San Francisco, CA 94107</p>
-                  </div>
+                
+                </div>
+
+                <div className="mt-8 flex flex-col sm:flex-row gap-3">
+                  <button className="inline-flex items-center justify-center px-4 py-3 rounded-lg bg-blue-500 text-white hover:bg-blue-600 transition">
+                    <Calendar className="h-5 w-5 mr-2" />
+                    Schedule a Free Consultation
+                  </button>
+                  <button className="inline-flex items-center justify-center px-4 py-3 rounded-lg border border-gray-600 text-gray-200 hover:bg-gray-700 transition">
+                    <Download className="h-5 w-5 mr-2" />
+                    Download Automation Guide
+                  </button>
                 </div>
               </div>
               
-              <div className="mt-12">
-                <h4 className="text-lg font-semibold text-white mb-4">Follow Us</h4>
-                <div className="flex space-x-4">
-                  <a href="#" className="text-blue-100 hover:text-white transition-colors">
-                    <Linkedin className="h-6 w-6" />
-                  </a>
-                  <a href="#" className="text-blue-100 hover:text-white transition-colors">
-                    <Twitter className="h-6 w-6" />
-                  </a>
-                  <a href="#" className="text-blue-100 hover:text-white transition-colors">
-                    <Github className="h-6 w-6" />
-                  </a>
-                </div>
+              {/* Right: Form */}
+              <div>
+                {/* Success Message */}
+                {submitStatus === 'success' && (
+                  <div className="mb-6 p-4 bg-green-900 border border-green-700 rounded-lg">
+                    <div className="flex items-center">
+                      <CheckCircle className="h-5 w-5 text-green-400 mr-2" />
+                      <span className="text-green-200">Message sent successfully! We'll get back to you soon.</span>
+                    </div>
+                  </div>
+                )}
+
+                {/* Error Message */}
+                {submitStatus === 'error' && (
+                  <div className="mb-6 p-4 bg-red-900 border border-red-700 rounded-lg">
+                    <div className="flex items-center">
+                      <X className="h-5 w-5 text-red-400 mr-2" />
+                      <span className="text-red-200">{errorMessage}</span>
+                    </div>
+                  </div>
+                )}
+
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">Full Name <span className="text-red-500">*</span></label>
+                      <input 
+                        type="text" 
+                        name="fullName"
+                        value={formData.fullName}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-3 border border-gray-700 rounded-lg bg-gray-900 text-gray-200 placeholder-gray-400 focus:ring-2 focus:ring-blue-600 focus:border-transparent" 
+                        placeholder="Your full name" 
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">Email Address <span className="text-red-500">*</span></label>
+                      <input 
+                        type="email" 
+                        name="email"
+                        value={formData.email}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-3 border border-gray-700 rounded-lg bg-gray-900 text-gray-200 placeholder-gray-400 focus:ring-2 focus:ring-blue-600 focus:border-transparent" 
+                        placeholder="your.email@company.com" 
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">Company Name <span className="text-red-500">*</span></label>
+                    <input 
+                      type="text" 
+                      name="company"
+                      value={formData.company}
+                      onChange={handleInputChange}
+                      className="w-full px-4 py-3 border border-gray-700 rounded-lg bg-gray-900 text-gray-200 placeholder-gray-400 focus:ring-2 focus:ring-blue-600 focus:border-transparent" 
+                      placeholder="Your company name" 
+                      required
+                    />
+                  </div>
+
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">Service Interest <span className="text-red-500">*</span></label>
+                      <select 
+                        name="service"
+                        value={formData.service}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-3 border border-gray-700 rounded-lg bg-gray-900 text-gray-200 focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+                        required
+                      >
+                        <option value="">Select a service</option>
+                        <option value="Workflow Automation (n8n)">Workflow Automation (n8n)</option>
+                        <option value="Make.com Integrations">Make.com Integrations</option>
+                        <option value="AI-Powered Automation">AI-Powered Automation</option>
+                        <option value="Data Processing">Data Processing</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">Project Budget <span className="text-red-500">*</span></label>
+                      <select 
+                        name="budget"
+                        value={formData.budget}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-3 border border-gray-700 rounded-lg bg-gray-900 text-gray-200 focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+                        required
+                      >
+                        <option value="">Select budget range</option>
+                        <option value="$2k - $5k">$2k - $5k</option>
+                        <option value="$5k - $10k">$5k - $10k</option>
+                        <option value="$10k - $25k">$10k - $25k</option>
+                        <option value="$25k+">$25k+</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">Project Details <span className="text-red-500">*</span></label>
+                    <textarea 
+                      rows={5} 
+                      name="message"
+                      value={formData.message}
+                      onChange={handleInputChange}
+                      className="w-full px-4 py-3 border border-gray-700 rounded-lg bg-gray-900 text-gray-200 placeholder-gray-400 focus:ring-2 focus:ring-blue-600 focus:border-transparent" 
+                      placeholder="Tell us about your project, current challenges, and goals..."
+                      required
+                    ></textarea>
+                  </div>
+
+                  <button 
+                    type="submit" 
+                    disabled={isSubmitting}
+                    className="w-full inline-flex items-center justify-center px-4 py-3 rounded-lg bg-blue-500 text-white font-semibold hover:bg-blue-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                        Sending...
+                      </>
+                    ) : (
+                      <>
+                        <Send className="h-5 w-5 mr-2" />
+                        Send Message
+                      </>
+                    )}
+                  </button>
+                </form>
               </div>
             </div>
           </div>
@@ -631,11 +757,47 @@ function App() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="flex items-center mb-4 md:mb-0">
-              <Bot className="h-8 w-8 text-blue-400" />
-              <span className="ml-2 text-xl font-bold text-white">AutoFlow AI</span>
+              <img 
+                src="/team/logo-removebg-preview.png" 
+                alt="SAMS Solutions Hub Logo" 
+                className="h-8 w-8 object-contain"
+              />
+              <span className="ml-2 text-xl font-bold text-white">SAMS Solutions Hub</span>
             </div>
+            
+            {/* Social Media Links */}
+            <div className="flex items-center space-x-4 mb-4 md:mb-0">
+              <a 
+                href="http://www.linkedin.com/in/sams-solution-hub-4966b8388" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-gray-400 hover:text-blue-400 transition-colors"
+                aria-label="LinkedIn"
+              >
+                <Linkedin className="h-6 w-6" />
+              </a>
+              <a 
+                href="https://www.facebook.com/samssolutionshub" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-gray-400 hover:text-blue-400 transition-colors"
+                aria-label="Facebook"
+              >
+                <Facebook className="h-6 w-6" />
+              </a>
+              <a 
+                href="https://www.instagram.com/sams_solutions_hub?igsh=NXQycWV4aW9mMWFr" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-gray-400 hover:text-blue-400 transition-colors"
+                aria-label="Instagram"
+              >
+                <Instagram className="h-6 w-6" />
+              </a>
+            </div>
+            
             <p className="text-gray-400 text-sm">
-              © 2025 AutoFlow AI. All rights reserved.
+              © 2025 SAMS Solutions Hub. All rights reserved.
             </p>
           </div>
         </div>
